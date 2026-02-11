@@ -6,16 +6,26 @@ namespace GlavPro\CrmStages\Domain;
 
 use GlavPro\CrmStages\DTO\ValidationResult;
 
+/**
+ * Валидатор условий выхода из стадий воронки.
+ *
+ * Для каждой стадии определяет набор обязательных событий,
+ * которые должны быть зафиксированы перед переходом на следующую стадию.
+ */
 final class TransitionValidator
 {
+    /** @var int Максимальное количество дней с момента проведения демо */
     private const DEMO_FRESHNESS_DAYS = 60;
 
     /**
-     * Validate exit conditions for the current stage.
+     * Проверить условия выхода для текущей стадии.
      *
-     * @param string $currentStage
-     * @param array  $events Array of Event-like arrays with 'type', 'payload', 'created_at' keys
-     * @return ValidationResult
+     * Делегирует проверку в соответствующий приватный метод
+     * в зависимости от кода стадии.
+     *
+     * @param string $currentStage Код текущей стадии компании
+     * @param array<array<string, mixed>> $events Массив событий с ключами 'type', 'payload', 'created_at'
+     * @return ValidationResult Результат валидации: valid или invalid с массивом ошибок
      */
     public function validate(string $currentStage, array $events): ValidationResult
     {
@@ -34,6 +44,14 @@ final class TransitionValidator
         };
     }
 
+    /**
+     * Проверить условия выхода из стадии Ice.
+     *
+     * Требуется: разговор с ЛПР (lpr_conversation).
+     *
+     * @param array<array<string, mixed>> $events Массив событий компании
+     * @return ValidationResult Результат валидации
+     */
     private function validateIce(array $events): ValidationResult
     {
         if (!$this->hasEventOfType($events, 'lpr_conversation')) {
@@ -42,6 +60,14 @@ final class TransitionValidator
         return ValidationResult::valid();
     }
 
+    /**
+     * Проверить условия выхода из стадии Touched.
+     *
+     * Требуется: заполненная форма дискавери (discovery_filled).
+     *
+     * @param array<array<string, mixed>> $events Массив событий компании
+     * @return ValidationResult Результат валидации
+     */
     private function validateTouched(array $events): ValidationResult
     {
         if (!$this->hasEventOfType($events, 'discovery_filled')) {
@@ -50,6 +76,14 @@ final class TransitionValidator
         return ValidationResult::valid();
     }
 
+    /**
+     * Проверить условия выхода из стадии Aware.
+     *
+     * Требуется: запланированная демонстрация (demo_planned).
+     *
+     * @param array<array<string, mixed>> $events Массив событий компании
+     * @return ValidationResult Результат валидации
+     */
     private function validateAware(array $events): ValidationResult
     {
         if (!$this->hasEventOfType($events, 'demo_planned')) {
@@ -58,6 +92,14 @@ final class TransitionValidator
         return ValidationResult::valid();
     }
 
+    /**
+     * Проверить условия выхода из стадии Interested.
+     *
+     * Требуется: событие demo_planned с заполненным полем scheduled_at в payload.
+     *
+     * @param array<array<string, mixed>> $events Массив событий компании
+     * @return ValidationResult Результат валидации
+     */
     private function validateInterested(array $events): ValidationResult
     {
         $demoEvent = $this->findEventOfType($events, 'demo_planned');
@@ -71,6 +113,14 @@ final class TransitionValidator
         return ValidationResult::valid();
     }
 
+    /**
+     * Проверить условия выхода из стадии demo_planned.
+     *
+     * Требуется: проведённая демонстрация (demo_conducted).
+     *
+     * @param array<array<string, mixed>> $events Массив событий компании
+     * @return ValidationResult Результат валидации
+     */
     private function validateDemoPlanned(array $events): ValidationResult
     {
         if (!$this->hasEventOfType($events, 'demo_conducted')) {
@@ -79,6 +129,15 @@ final class TransitionValidator
         return ValidationResult::valid();
     }
 
+    /**
+     * Проверить условия выхода из стадии Demo_done.
+     *
+     * Требуется: демо проведено не более 60 дней назад (demo_conducted)
+     * и наличие счёта (invoice_created) или КП (kp_sent).
+     *
+     * @param array<array<string, mixed>> $events Массив событий компании
+     * @return ValidationResult Результат валидации
+     */
     private function validateDemoDone(array $events): ValidationResult
     {
         $errors = [];
@@ -106,7 +165,14 @@ final class TransitionValidator
     }
 
     /**
-     * Validate Demo_done with explicit "now" for testability.
+     * Проверить условия выхода из стадии Demo_done с явной датой «сейчас».
+     *
+     * Аналог validateDemoDone(), но принимает текущую дату как параметр
+     * для детерминированного тестирования правила свежести демо.
+     *
+     * @param array<array<string, mixed>> $events Массив событий компании
+     * @param \DateTimeImmutable $now Текущая дата для расчёта свежести демо
+     * @return ValidationResult Результат валидации
      */
     public function validateDemoDoneAt(array $events, \DateTimeImmutable $now): ValidationResult
     {
@@ -132,6 +198,14 @@ final class TransitionValidator
         return empty($errors) ? ValidationResult::valid() : ValidationResult::invalid($errors);
     }
 
+    /**
+     * Проверить условия выхода из стадии Committed.
+     *
+     * Требуется: подтверждение оплаты (payment_received).
+     *
+     * @param array<array<string, mixed>> $events Массив событий компании
+     * @return ValidationResult Результат валидации
+     */
     private function validateCommitted(array $events): ValidationResult
     {
         if (!$this->hasEventOfType($events, 'payment_received')) {
@@ -140,6 +214,14 @@ final class TransitionValidator
         return ValidationResult::valid();
     }
 
+    /**
+     * Проверить условия выхода из стадии Customer.
+     *
+     * Требуется: выданное удостоверение (certificate_issued).
+     *
+     * @param array<array<string, mixed>> $events Массив событий компании
+     * @return ValidationResult Результат валидации
+     */
     private function validateCustomer(array $events): ValidationResult
     {
         if (!$this->hasEventOfType($events, 'certificate_issued')) {
@@ -148,11 +230,25 @@ final class TransitionValidator
         return ValidationResult::valid();
     }
 
+    /**
+     * Проверить наличие события указанного типа в массиве.
+     *
+     * @param array<array<string, mixed>> $events Массив событий
+     * @param string $type Тип события для поиска
+     * @return bool true, если событие найдено
+     */
     private function hasEventOfType(array $events, string $type): bool
     {
         return $this->findEventOfType($events, $type) !== null;
     }
 
+    /**
+     * Найти первое событие указанного типа в массиве.
+     *
+     * @param array<array<string, mixed>> $events Массив событий
+     * @param string $type Тип события для поиска
+     * @return array<string, mixed>|null Найденное событие или null
+     */
     private function findEventOfType(array $events, string $type): ?array
     {
         foreach ($events as $event) {
@@ -164,6 +260,14 @@ final class TransitionValidator
         return null;
     }
 
+    /**
+     * Извлечь payload из события.
+     *
+     * Поддерживает payload как массив и как JSON-строку.
+     *
+     * @param array<string, mixed> $event Событие
+     * @return array<string, mixed> Декодированный payload
+     */
     private function getPayload(array $event): array
     {
         $payload = $event['payload'] ?? [];
@@ -173,6 +277,12 @@ final class TransitionValidator
         return (array) $payload;
     }
 
+    /**
+     * Извлечь дату создания события.
+     *
+     * @param array<string, mixed> $event Событие
+     * @return \DateTimeImmutable|null Дата создания или null при отсутствии/ошибке парсинга
+     */
     private function getCreatedAt(array $event): ?\DateTimeImmutable
     {
         $createdAt = $event['created_at'] ?? null;

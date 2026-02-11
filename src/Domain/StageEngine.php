@@ -6,8 +6,19 @@ namespace GlavPro\CrmStages\Domain;
 
 use GlavPro\CrmStages\DTO\TransitionResult;
 
+/**
+ * Основной движок переходов между стадиями воронки.
+ *
+ * Координирует валидацию условий выхода, проверку последовательности
+ * и ограничения действий для компаний в CRM-воронке.
+ */
 final class StageEngine
 {
+    /**
+     * @param TransitionValidator $validator Валидатор условий выхода из стадий
+     * @param StageMap $stageMap Карта стадий воронки с порядком и метаданными
+     * @param ActionRestrictions $actionRestrictions Ограничения действий по стадиям
+     */
     public function __construct(
         private readonly TransitionValidator $validator,
         private readonly StageMap $stageMap,
@@ -15,11 +26,14 @@ final class StageEngine
     ) {}
 
     /**
-     * Attempt to transition a company to the next stage.
+     * Попытка перевести компанию на следующую стадию воронки.
      *
-     * @param string $currentStage
-     * @param array  $events
-     * @return TransitionResult
+     * Проверяет, что текущая стадия не терминальная, что существует
+     * следующая стадия, и что все условия выхода выполнены.
+     *
+     * @param string $currentStage Код текущей стадии компании
+     * @param array<array<string, mixed>> $events Список событий компании для проверки условий выхода
+     * @return TransitionResult Результат перехода: успех с новой стадией или ошибка с причинами
      */
     public function transition(string $currentStage, array $events): TransitionResult
     {
@@ -41,8 +55,15 @@ final class StageEngine
     }
 
     /**
-     * Attempt to transition a company to a specific target stage.
-     * Only allows transition to the immediately next stage.
+     * Попытка перевести компанию в конкретную целевую стадию.
+     *
+     * Допускает только последовательный переход на следующую стадию.
+     * Если целевая стадия — Null, делегирует в transitionToNull().
+     *
+     * @param string $currentStage Код текущей стадии компании
+     * @param string $targetStage Код целевой стадии
+     * @param array<array<string, mixed>> $events Список событий компании для проверки условий выхода
+     * @return TransitionResult Результат перехода: успех с новой стадией или ошибка с причинами
      */
     public function transitionTo(string $currentStage, string $targetStage, array $events): TransitionResult
     {
@@ -65,7 +86,13 @@ final class StageEngine
     }
 
     /**
-     * Transition to Null (rejection) from any active stage.
+     * Перевод компании в стадию Null (отказ).
+     *
+     * Null доступен из любой нетерминальной стадии.
+     * Из Null и Activated переход невозможен.
+     *
+     * @param string $currentStage Код текущей стадии компании
+     * @return TransitionResult Результат перехода: успех со стадией Null или ошибка
      */
     public function transitionToNull(string $currentStage): TransitionResult
     {
@@ -80,7 +107,12 @@ final class StageEngine
         return TransitionResult::ok('Null');
     }
 
-    /** @return string[] */
+    /**
+     * Получить список доступных действий для указанной стадии.
+     *
+     * @param string $stageCode Код стадии
+     * @return string[] Массив кодов разрешённых действий
+     */
     public function getAvailableActions(string $stageCode): array
     {
         return $this->actionRestrictions->getAllowedActions($stageCode);
