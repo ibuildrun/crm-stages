@@ -34,6 +34,10 @@ final class Event
      * @return array{id: int, company_id: int, manager_id: int, type: string, payload: array<string, mixed>, created_at: string}
      */
     public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'company_id' => $this->companyId,
             'manager_id' => $this->managerId,
             'type' => $this->type,
             'payload' => $this->payload,

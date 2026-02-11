@@ -35,6 +35,11 @@ final class CompanyDTO
      * @return array{id: int, name: string, stage_code: string, stage_name: string, created_at: string, updated_at: string, created_by: int}
      */
     public function toArray(): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'stage_code' => $this->stageCode,
             'stage_name' => $this->stageName,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
