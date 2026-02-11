@@ -131,7 +131,7 @@ final class StageMap
             if ($stageCode === 'Null') {
                 return -1;
             }
-            throw new \InvalidArgumentException("Unknown stage: {$stageCode}");
+            throw new \InvalidArgumentException("Неизвестная стадия: {$stageCode}");
         }
         return (int) $index;
     }
@@ -139,7 +139,7 @@ final class StageMap
     public function getStageInfo(string $stageCode): StageInfo
     {
         if (!isset($this->stages[$stageCode])) {
-            throw new \InvalidArgumentException("Unknown stage: {$stageCode}");
+            throw new \InvalidArgumentException("Неизвестная стадия: {$stageCode}");
         }
         return $this->stages[$stageCode];
     }

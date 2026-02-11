@@ -44,12 +44,12 @@ class CompanyRepository
     public function updateStage(int $id, string $expectedStage, string $newStage, string $newStageName): CompanyDTO
     {
         if (!isset($this->storage[$id])) {
-            throw new \RuntimeException("Company {$id} not found");
+            throw new \RuntimeException("Компания {$id} не найдена");
         }
 
         if ($this->storage[$id]['stage_code'] !== $expectedStage) {
             throw new \RuntimeException(
-                "Stage conflict: expected {$expectedStage}, found {$this->storage[$id]['stage_code']}"
+                "Конфликт стадий: ожидалась {$expectedStage}, найдена {$this->storage[$id]['stage_code']}"
             );
         }
 

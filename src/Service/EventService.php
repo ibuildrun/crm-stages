@@ -22,7 +22,7 @@ class EventService
     public function recordEvent(int $companyId, int $managerId, string $type, array $payload = []): Event
     {
         if (!in_array($type, self::VALID_TYPES, true)) {
-            throw new \InvalidArgumentException("Invalid event type: {$type}");
+            throw new \InvalidArgumentException("Неверный тип события: {$type}");
         }
 
         return $this->repository->insert($companyId, $managerId, $type, $payload);

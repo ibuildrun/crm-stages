@@ -24,7 +24,7 @@ class CompanyService
     {
         $company = $this->companyRepo->findById($id);
         if ($company === null) {
-            throw new \RuntimeException("Company {$id} not found");
+            throw new \RuntimeException("Компания {$id} не найдена");
         }
         return $company;
     }

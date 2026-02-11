@@ -31,19 +31,19 @@ class ActionService
     {
         $company = $this->companyRepo->findById($companyId);
         if ($company === null) {
-            throw new \RuntimeException("Company {$companyId} not found");
+            throw new \RuntimeException("Компания {$companyId} не найдена");
         }
 
         if (!$this->restrictions->isActionAllowed($company->stageCode, $action)) {
             $allowed = $this->restrictions->getAllowedActions($company->stageCode);
             throw new \RuntimeException(
-                "Action '{$action}' is restricted at stage {$company->stageCode}. Allowed: " . implode(', ', $allowed)
+                "Действие '{$action}' недоступно на стадии {$company->stageCode}. Доступны: " . implode(', ', $allowed)
             );
         }
 
         $eventType = self::ACTION_TO_EVENT[$action] ?? null;
         if ($eventType === null) {
-            throw new \InvalidArgumentException("Unknown action: {$action}");
+            throw new \InvalidArgumentException("Неизвестное действие: {$action}");
         }
 
         return $this->eventService->recordEvent($companyId, $managerId, $eventType, $data);

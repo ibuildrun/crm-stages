@@ -28,9 +28,9 @@ final class TransitionValidator
             'Demo_done' => $this->validateDemoDone($events),
             'Committed' => $this->validateCommitted($events),
             'Customer' => $this->validateCustomer($events),
-            'Activated' => ValidationResult::invalid(['Stage Activated is terminal, no further transitions']),
-            'Null' => ValidationResult::invalid(['Stage Null is terminal, no further transitions']),
-            default => ValidationResult::invalid(["Unknown stage: {$currentStage}"]),
+            'Activated' => ValidationResult::invalid(['Стадия Activated является терминальной, переходы невозможны']),
+            'Null' => ValidationResult::invalid(['Стадия Null является терминальной, переходы невозможны']),
+            default => ValidationResult::invalid(["Неизвестная стадия: {$currentStage}"]),
         };
     }
 

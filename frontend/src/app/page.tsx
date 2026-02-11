@@ -170,7 +170,7 @@ export default function DashboardPage() {
                 transition={{ delay: 0.5 }}
                 className="glass-card rounded-2xl p-6"
               >
-                <h3 className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-3">Activated (выиграно)</h3>
+                <h3 className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-3">Активирована (выиграно)</h3>
                 <div className="space-y-2">
                   {wonCompanies.map(c => (
                     <Link key={c.id} href={`/companies/${c.id}`} className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors">
@@ -188,7 +188,7 @@ export default function DashboardPage() {
                 transition={{ delay: 0.6 }}
                 className="glass-card rounded-2xl p-6"
               >
-                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Null (отказ)</h3>
+                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">Отказ (Null)</h3>
                 <div className="space-y-2">
                   {lostCompanies.map(c => (
                     <Link key={c.id} href={`/companies/${c.id}`} className="flex items-center justify-between p-2 rounded-lg hover:bg-white/5 transition-colors">
