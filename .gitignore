@@ -1,0 +1,10 @@
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/original-design/
+frontend/tsconfig.tsbuildinfo
+frontend/debug_output.html
+frontend/tmp_response.html
+.phpunit.cache/
+vendor/
+composer.lock
