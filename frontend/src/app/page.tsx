@@ -6,7 +6,8 @@ import { STAGES_ORDER, STAGE_CONFIG } from '@/lib/stages';
 import { createMockCompanies } from '@/lib/mock-data';
 import Navbar from '@/components/Navbar';
 import PageLoader from '@/components/PageLoader';
-import { ArrowRight, Building2, TrendingUp, Users, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Building2, TrendingUp, Users, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 
 export default function DashboardPage() {
   const companies = createMockCompanies();
@@ -20,6 +21,36 @@ export default function DashboardPage() {
   const activeCompanies = companies.filter(c => c.stage_code !== 'Null' && c.stage_code !== 'Activated');
   const wonCompanies = companies.filter(c => c.stage_code === 'Activated');
   const lostCompanies = companies.filter(c => c.stage_code === 'Null');
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const updateScrollState = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 0);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateScrollState();
+    el.addEventListener('scroll', updateScrollState, { passive: true });
+    window.addEventListener('resize', updateScrollState);
+    return () => {
+      el.removeEventListener('scroll', updateScrollState);
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, [updateScrollState]);
+
+  const scroll = (direction: 'left' | 'right') => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const columnWidth = 224; // w-56 = 14rem = 224px
+    el.scrollBy({ left: direction === 'left' ? -columnWidth * 2 : columnWidth * 2, behavior: 'smooth' });
+  };
 
   return (
     <PageLoader message="Синхронизация воронки..." delay={1000}>
@@ -56,12 +87,32 @@ export default function DashboardPage() {
           transition={{ delay: 0.3 }}
           className="glass-card rounded-[24px] overflow-hidden"
         >
-          <div className="p-6 border-b border-white/5">
-            <h2 className="text-sm font-semibold">Воронка продаж</h2>
-            <p className="text-xs text-zinc-500 mt-1">Канбан-доска по стадиям</p>
+          <div className="p-6 border-b border-white/5 flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold">Воронка продаж</h2>
+              <p className="text-xs text-zinc-500 mt-1">Канбан-доска по стадиям</p>
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => scroll('left')}
+                disabled={!canScrollLeft}
+                className="p-2 rounded-lg border border-white/10 hover:bg-white/10 disabled:opacity-20 disabled:cursor-default transition-all"
+                aria-label="Прокрутить влево"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                onClick={() => scroll('right')}
+                disabled={!canScrollRight}
+                className="p-2 rounded-lg border border-white/10 hover:bg-white/10 disabled:opacity-20 disabled:cursor-default transition-all"
+                aria-label="Прокрутить вправо"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
 
-          <div className="overflow-x-auto scrollbar-hide">
+          <div ref={scrollRef} className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-0 min-w-max">
               {STAGES_ORDER.map(stage => {
                 const config = STAGE_CONFIG[stage];
