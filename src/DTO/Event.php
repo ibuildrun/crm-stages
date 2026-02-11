@@ -4,6 +4,19 @@ declare(strict_types=1);
 
 namespace GlavPro\CrmStages\DTO;
 
+/**
+ * DTO события компании.
+ *
+ * Иммутабельный объект, представляющий одно событие
+ * в истории компании (append-only event sourcing).
+ *
+ * @property int $id Идентификатор события
+ * @property int $companyId Идентификатор компании
+ * @property int $managerId Идентификатор менеджера
+ * @property string $type Тип события (например, 'lpr_conversation', 'demo_conducted')
+ * @property array<string, mixed> $payload Дополнительные данные события
+ * @property string $createdAt Дата создания (ISO 8601)
+ */
 final class Event
 {
     public function __construct(
@@ -15,11 +28,12 @@ final class Event
         public readonly string $createdAt,
     ) {}
 
+    /**
+     * Сериализовать событие в массив.
+     *
+     * @return array{id: int, company_id: int, manager_id: int, type: string, payload: array<string, mixed>, created_at: string}
+     */
     public function toArray(): array
-    {
-        return [
-            'id' => $this->id,
-            'company_id' => $this->companyId,
             'manager_id' => $this->managerId,
             'type' => $this->type,
             'payload' => $this->payload,
@@ -27,6 +41,14 @@ final class Event
         ];
     }
 
+    /**
+     * Создать DTO из массива данных.
+     *
+     * Поддерживает payload как массив и как JSON-строку.
+     *
+     * @param array{id: int|string, company_id: int|string, manager_id: int|string, type: string, payload: array|string, created_at: string} $data Массив с данными события
+     * @return self
+     */
     public static function fromArray(array $data): self
     {
         $payload = $data['payload'];
