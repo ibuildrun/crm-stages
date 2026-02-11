@@ -6,13 +6,30 @@ namespace GlavPro\CrmStages\Controller;
 
 use GlavPro\CrmStages\Service\CompanyService;
 
+/**
+ * Контроллер компаний.
+ *
+ * Обрабатывает HTTP-запросы для получения данных компании
+ * и управления переходами между стадиями.
+ */
 class CompanyController
 {
+    /**
+     * @param CompanyService $companyService Сервис управления компаниями
+     */
     public function __construct(
         private readonly CompanyService $companyService,
     ) {}
 
-    /** GET /api/companies/{id} */
+    /**
+     * Получить карточку компании.
+     *
+     * GET /api/companies/{id}
+     *
+     * @param int $id Идентификатор компании
+     * @param int $managerId Идентификатор менеджера
+     * @return array{success: bool, data?: array, errors?: array} Ответ API
+     */
     public function show(int $id, int $managerId): array
     {
         try {
@@ -23,7 +40,15 @@ class CompanyController
         }
     }
 
-    /** POST /api/companies/{id}/transition */
+    /**
+     * Перевести компанию на следующую стадию.
+     *
+     * POST /api/companies/{id}/transition
+     *
+     * @param int $id Идентификатор компании
+     * @param int $managerId Идентификатор менеджера
+     * @return array{success: bool, data?: array, errors?: array} Ответ API
+     */
     public function transition(int $id, int $managerId): array
     {
         try {
@@ -43,7 +68,15 @@ class CompanyController
         }
     }
 
-    /** POST /api/companies/{id}/transition-null */
+    /**
+     * Перевести компанию в стадию Null (отказ).
+     *
+     * POST /api/companies/{id}/transition-null
+     *
+     * @param int $id Идентификатор компании
+     * @param int $managerId Идентификатор менеджера
+     * @return array{success: bool, data?: array, errors?: array} Ответ API
+     */
     public function transitionNull(int $id, int $managerId): array
     {
         try {
