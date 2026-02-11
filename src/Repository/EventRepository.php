@@ -6,12 +6,29 @@ namespace GlavPro\CrmStages\Repository;
 
 use GlavPro\CrmStages\DTO\Event;
 
+/**
+ * Репозиторий событий (in-memory реализация).
+ *
+ * Хранит события компаний в памяти (append-only).
+ * Предназначен для замены на реализацию с Joomla DB API.
+ */
 class EventRepository
 {
-    /** @var array<int, Event[]> In-memory storage keyed by company_id */
+    /** @var array<int, Event[]> Хранилище событий, ключ — company_id */
     private array $storage = [];
+
+    /** @var int Счётчик для генерации идентификаторов */
     private int $nextId = 1;
 
+    /**
+     * Записать новое событие.
+     *
+     * @param int $companyId Идентификатор компании
+     * @param int $managerId Идентификатор менеджера
+     * @param string $type Тип события
+     * @param array<string, mixed> $payload Дополнительные данные
+     * @return Event Созданное событие
+     */
     public function insert(int $companyId, int $managerId, string $type, array $payload): Event
     {
         $event = new Event(
@@ -27,7 +44,12 @@ class EventRepository
         return $event;
     }
 
-    /** @return Event[] sorted by created_at DESC */
+    /**
+     * Получить все события компании, отсортированные по дате (новые первыми).
+     *
+     * @param int $companyId Идентификатор компании
+     * @return Event[] Массив событий
+     */
     public function findByCompanyId(int $companyId): array
     {
         $events = $this->storage[$companyId] ?? [];
@@ -35,7 +57,13 @@ class EventRepository
         return $events;
     }
 
-    /** @return Event[] filtered by type, sorted by created_at DESC */
+    /**
+     * Получить события компании определённого типа, отсортированные по дате (новые первыми).
+     *
+     * @param int $companyId Идентификатор компании
+     * @param string $type Тип события для фильтрации
+     * @return Event[] Массив событий
+     */
     public function findByCompanyIdAndType(int $companyId, string $type): array
     {
         $events = $this->findByCompanyId($companyId);
