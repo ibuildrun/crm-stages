@@ -25,12 +25,16 @@ export default function DashboardPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const isDragging = useRef(false);
+  const dragStartX = useRef(0);
+  const dragScrollLeft = useRef(0);
+  const wasDragged = useRef(false);
 
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 0);
-    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    setCanScrollLeft(el.scrollLeft > 2);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
   }, []);
 
   useEffect(() => {
@@ -48,8 +52,50 @@ export default function DashboardPage() {
   const scroll = (direction: 'left' | 'right') => {
     const el = scrollRef.current;
     if (!el) return;
-    const columnWidth = 224; // w-56 = 14rem = 224px
-    el.scrollBy({ left: direction === 'left' ? -columnWidth * 2 : columnWidth * 2, behavior: 'smooth' });
+    const columnWidth = 224;
+    const delta = direction === 'left' ? -columnWidth * 2 : columnWidth * 2;
+    el.scrollBy({ left: delta, behavior: 'smooth' });
+    // Update state after smooth scroll finishes
+    setTimeout(updateScrollState, 350);
+  };
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    isDragging.current = true;
+    wasDragged.current = false;
+    dragStartX.current = e.pageX - el.offsetLeft;
+    dragScrollLeft.current = el.scrollLeft;
+    el.style.cursor = 'grabbing';
+    el.style.userSelect = 'none';
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    e.preventDefault();
+    const x = e.pageX - el.offsetLeft;
+    const walk = x - dragStartX.current;
+    if (Math.abs(walk) > 3) wasDragged.current = true;
+    el.scrollLeft = dragScrollLeft.current - walk;
+  };
+
+  const onMouseUp = () => {
+    isDragging.current = false;
+    const el = scrollRef.current;
+    if (el) {
+      el.style.cursor = 'grab';
+      el.style.userSelect = '';
+    }
+  };
+
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (wasDragged.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      wasDragged.current = false;
+    }
   };
 
   return (
@@ -112,7 +158,15 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div ref={scrollRef} className="overflow-x-auto scrollbar-hide">
+          <div
+            ref={scrollRef}
+            className="overflow-x-auto scrollbar-hide cursor-grab"
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseUp}
+            onClickCapture={onClickCapture}
+          >
             <div className="flex gap-0 min-w-max">
               {STAGES_ORDER.map(stage => {
                 const config = STAGE_CONFIG[stage];
