@@ -11,8 +11,20 @@ use GlavPro\CrmStages\DTO\CompanyDTO;
 use GlavPro\CrmStages\DTO\TransitionResult;
 use GlavPro\CrmStages\Repository\CompanyRepository;
 
+/**
+ * Сервис управления компаниями.
+ *
+ * Оркестрирует получение данных компании, переходы между стадиями
+ * и формирование карточки компании.
+ */
 class CompanyService
 {
+    /**
+     * @param CompanyRepository $companyRepo Репозиторий компаний
+     * @param EventService $eventService Сервис событий
+     * @param StageEngine $stageEngine Движок переходов между стадиями
+     * @param StageMap $stageMap Карта стадий воронки
+     */
     public function __construct(
         private readonly CompanyRepository $companyRepo,
         private readonly EventService $eventService,
@@ -20,6 +32,13 @@ class CompanyService
         private readonly StageMap $stageMap,
     ) {}
 
+    /**
+     * Получить DTO компании по идентификатору.
+     *
+     * @param int $id Идентификатор компании
+     * @return CompanyDTO Данные компании
+     * @throws \RuntimeException Если компания не найдена
+     */
     public function getCompany(int $id): CompanyDTO
     {
         $company = $this->companyRepo->findById($id);
@@ -29,6 +48,17 @@ class CompanyService
         return $company;
     }
 
+    /**
+     * Перевести компанию на следующую стадию воронки.
+     *
+     * Проверяет условия выхода, обновляет стадию в репозитории
+     * и записывает событие stage_transition.
+     *
+     * @param int $companyId Идентификатор компании
+     * @param int $managerId Идентификатор менеджера, инициирующего переход
+     * @return TransitionResult Результат перехода
+     * @throws \RuntimeException Если компания не найдена
+     */
     public function transitionStage(int $companyId, int $managerId): TransitionResult
     {
         $company = $this->getCompany($companyId);
@@ -49,6 +79,16 @@ class CompanyService
         return $result;
     }
 
+    /**
+     * Перевести компанию в стадию Null (отказ).
+     *
+     * Обновляет стадию в репозитории и записывает событие stage_transition.
+     *
+     * @param int $companyId Идентификатор компании
+     * @param int $managerId Идентификатор менеджера
+     * @return TransitionResult Результат перехода
+     * @throws \RuntimeException Если компания не найдена
+     */
     public function transitionToNull(int $companyId, int $managerId): TransitionResult
     {
         $company = $this->getCompany($companyId);
@@ -67,6 +107,16 @@ class CompanyService
         return $result;
     }
 
+    /**
+     * Сформировать карточку компании с полной информацией.
+     *
+     * Агрегирует данные компании, метаданные стадии,
+     * доступные действия и историю событий.
+     *
+     * @param int $companyId Идентификатор компании
+     * @return CompanyCardDTO Карточка компании
+     * @throws \RuntimeException Если компания не найдена
+     */
     public function getCompanyCard(int $companyId): CompanyCardDTO
     {
         $company = $this->getCompany($companyId);
