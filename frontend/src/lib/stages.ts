@@ -55,7 +55,7 @@ export const ALL_ACTIONS: ActionDef[] = [
 const RESTRICTIONS: Record<StageCode, string[]> = {
   Ice:          ['create_invoice', 'send_kp', 'plan_demo', 'conduct_demo'],
   Touched:      ['create_invoice', 'send_kp', 'plan_demo', 'conduct_demo'],
-  Aware:        ['create_invoice', 'send_kp', 'plan_demo', 'conduct_demo'],
+  Aware:        ['create_invoice', 'send_kp', 'conduct_demo'],
   Interested:   ['create_invoice', 'send_kp'],
   demo_planned: ['create_invoice', 'send_kp'],
   Demo_done:    [],

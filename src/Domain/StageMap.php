@@ -43,7 +43,7 @@ final class StageMap
                 name: 'Aware',
                 instruction: 'Запланируйте демонстрацию продукта. Укажите дату и время.',
                 exitConditions: ['demo_planned'],
-                restrictions: ['create_invoice', 'send_kp'],
+                restrictions: ['create_invoice', 'send_kp', 'conduct_demo'],
             ),
             'Interested' => new StageInfo(
                 code: 'Interested',
